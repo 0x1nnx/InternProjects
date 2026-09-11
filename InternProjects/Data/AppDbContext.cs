@@ -15,6 +15,10 @@ namespace InternProjects.Data
         public DbSet<Submission> Submissions { get; set; } = default!;
         public DbSet<TimeLog> TimeLogs { get; set; } = default!;
         public DbSet<ActivityLog> ActivityLogs { get; set; } = default!;
+        public DbSet<TrainingModule> TrainingModules { get; set; } = default!;
+        public DbSet<TrainingSection> TrainingSections { get; set; } = default!;
+        public DbSet<TrainingTopic> TrainingTopics { get; set; } = default!;
+        public DbSet<TrainingImage> TrainingImages { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -80,6 +84,18 @@ namespace InternProjects.Data
                 .WithMany(c => c.Tasks)
                 .HasForeignKey(t => t.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TrainingSection>()
+                .HasOne(s => s.Module)
+                .WithMany(m => m.Sections)
+                .HasForeignKey(s => s.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrainingTopic>()
+                .HasOne(t => t.Section)
+                .WithMany(s => s.Topics)
+                .HasForeignKey(t => t.SectionId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

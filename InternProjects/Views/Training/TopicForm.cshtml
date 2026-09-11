@@ -1,0 +1,59 @@
+@model InternProjects.Models.TrainingTopic
+@{
+    ViewData["Title"] = (string?)ViewData["Heading"] ?? "Подточка";
+    var formAction = (string?)ViewData["FormAction"] ?? "EditTopic";
+    bool isEdit = formAction == "EditTopic";
+}
+
+<nav class="mb-3">
+    <a asp-action="EditSection" asp-route-id="@Model.SectionId">← @(ViewData["SectionTitle"] ?? "Секция")</a>
+</nav>
+
+<h3 class="mb-4">@ViewData["Heading"]</h3>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form asp-action="@formAction" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+            <input type="hidden" asp-for="SectionId" />
+            @if (isEdit)
+            {
+                <input type="hidden" asp-for="Id" />
+            }
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">Заглавие *</label>
+                        <input asp-for="Title" class="form-control"
+                               placeholder="Напр.: AKS 1 или Клиент е недоволен" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-0">
+                        <label asp-for="Content" class="form-label">Указания</label>
+                        <textarea asp-for="Content" class="form-control" rows="14"
+                                  placeholder="Текстът, който виждат стажантите."></textarea>
+                        <div class="form-text">
+                            Празен ред = нов абзац. Ред, който започва с <code>- </code>, се показва като точка от списък.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">Запази</button>
+                <a asp-action="EditSection" asp-route-id="@Model.SectionId" class="btn btn-outline-secondary">Отказ</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <partial name="_TrainingImageEditor" />
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/training-images.js" asp-append-version="true"></script>
+}

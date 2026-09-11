@@ -1,0 +1,97 @@
+@model InternProjects.Models.ViewModels.TrainingContentViewModel
+@{
+    // Празен ред разделя абзаците. Ред с "- " или "* " става списък.
+    // Ред само с [img:N] става снимка на това място.
+    var text = (Model.Text ?? "").Replace("\r\n", "\n").Trim();
+    var byId = Model.Images.ToDictionary(i => i.Id);
+    var used = new HashSet<int>();
+
+    var items = new List<(string Kind, List<string> Lines, InternProjects.Models.TrainingImage? Image)>();
+
+    foreach (var chunk in text.Split("\n\n", StringSplitOptions.RemoveEmptyEntries))
+    {
+        var lines = chunk.Split('\n')
+                         .Select(l => l.Trim())
+                         .Where(l => l.Length > 0)
+                         .ToList();
+
+        if (lines.Count == 0) continue;
+
+        // Маркерите се разпознават ред по ред, за да може снимка да стои между два абзаца.
+        var pending = new List<string>();
+
+        foreach (var line in lines)
+        {
+            int imageId = 0;
+
+            if (line.StartsWith("[img:") && line.EndsWith("]")
+                && int.TryParse(line.Substring(5, line.Length - 6), out imageId)
+                && byId.ContainsKey(imageId))
+            {
+                if (pending.Count > 0)
+                {
+                    items.Add((pending.All(l => l.StartsWith("- ") || l.StartsWith("* ")) ? "ul" : "p",
+                               new List<string>(pending), null));
+                    pending.Clear();
+                }
+
+                items.Add(("img", new List<string>(), byId[imageId]));
+                used.Add(imageId);
+            }
+            else
+            {
+                pending.Add(line);
+            }
+        }
+
+        if (pending.Count > 0)
+        {
+            items.Add((pending.All(l => l.StartsWith("- ") || l.StartsWith("* ")) ? "ul" : "p",
+                       new List<string>(pending), null));
+        }
+    }
+
+    // Снимки, които не са поставени с маркер, се показват накрая.
+    foreach (var image in Model.Images.Where(i => !used.Contains(i.Id)))
+    {
+        items.Add(("img", new List<string>(), image));
+    }
+}
+
+@if (items.Count == 0)
+{
+    <p class="text-muted small fst-italic mb-0">Указанията за тази тема предстои да бъдат добавени.</p>
+}
+else
+{
+    @foreach (var item in items)
+    {
+        @if (item.Kind == "img" && item.Image != null)
+        {
+            <figure class="training-figure mb-3">
+                <a asp-action="Image" asp-controller="Training" asp-route-id="@item.Image.Id" target="_blank">
+                    <img src="@Url.Action("Image", "Training", new { id = item.Image.Id })"
+                         alt="@(string.IsNullOrWhiteSpace(item.Image.Caption) ? item.Image.OriginalName : item.Image.Caption)"
+                         class="img-fluid rounded border" />
+                </a>
+                @if (!string.IsNullOrWhiteSpace(item.Image.Caption))
+                {
+                    <figcaption class="text-muted small mt-1">@item.Image.Caption</figcaption>
+                }
+            </figure>
+        }
+        else if (item.Kind == "ul")
+        {
+            <ul class="mb-2 ps-3">
+                @foreach (var line in item.Lines)
+                {
+                    <li class="mb-1">@line.Substring(2).Trim()</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="mb-2 training-text">@string.Join("\n", item.Lines)</p>
+        }
+    }
+}

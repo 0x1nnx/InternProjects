@@ -1,0 +1,85 @@
+@model List<InternProjects.Models.TrainingModule>
+@{
+    ViewData["Title"] = "Управление на обучението";
+}
+
+<nav class="mb-3"><a asp-action="Index">← Начално обучение</a></nav>
+
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <h2 class="mb-0">Управление на съдържанието</h2>
+    <a asp-action="CreateModule" class="btn btn-primary">+ Нов модул</a>
+</div>
+<p class="text-muted mb-3">Указанията, които виждат стажантите. Промените се отразяват веднага.</p>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 90px;">Ред</th>
+                    <th>Модул</th>
+                    <th class="text-center">Секции</th>
+                    <th class="text-center">Подточки</th>
+                    <th class="text-center">Състояние</th>
+                    <th class="text-end">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var module in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-dark border">@module.SortOrder</span>
+                                <form asp-action="MoveModule" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@module.Id" />
+                                    <input type="hidden" name="direction" value="up" />
+                                    <button type="submit" class="btn btn-sm btn-link p-0 px-1" title="Нагоре">↑</button>
+                                </form>
+                                <form asp-action="MoveModule" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@module.Id" />
+                                    <input type="hidden" name="direction" value="down" />
+                                    <button type="submit" class="btn btn-sm btn-link p-0 px-1" title="Надолу">↓</button>
+                                </form>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold">@module.Title</div>
+                            <div class="text-muted small">@module.Summary</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">@module.Sections.Count</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">@module.Sections.Sum(s => s.Topics.Count)</span>
+                        </td>
+                        <td class="text-center">
+                            @if (module.IsPublished)
+                            {
+                                <span class="badge bg-success">Видим</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Скрит</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Module" asp-route-id="@module.Id" class="btn btn-sm btn-outline-secondary">Преглед</a>
+                            <a asp-action="EditModule" asp-route-id="@module.Id" class="btn btn-sm btn-outline-primary">Редакция</a>
+                            <form asp-action="DeleteModule" method="post" class="d-inline"
+                                  onsubmit="return confirm('Модулът ще бъде изтрит заедно с всичките му секции и подточки. Да продължа?');">
+                                <input type="hidden" name="id" value="@module.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Изтрий</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-5">Няма добавени модули.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

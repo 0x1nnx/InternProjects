@@ -11,3 +11,6 @@ obj/
 # User-specific files
 *.user
 *.suo
+
+# Качени файлове (предадени задачи, снимки към обучението)
+InternProjects/uploads/
