@@ -38,11 +38,42 @@ namespace InternProjects.Controllers
                 .OrderByDescending(a => a.StartDate)
                 .ToListAsync();
 
-            var latestFeedback = await _context.Submissions
-                .Where(s => s.Assignment.InternId == internId && s.MentorFeedback != null)
+            var taskIds = assignments.Select(a => a.TaskId).Distinct().ToList();
+
+            var relatedAssignments = await _context.TaskAssignments
+                .Where(a => taskIds.Contains(a.TaskId))
+                .Select(a => new { a.Id, a.TaskId })
+                .ToListAsync();
+
+            var taskIdByAssignment = relatedAssignments
+                .ToDictionary(x => x.Id, x => x.TaskId);
+            var relatedIds = taskIdByAssignment.Keys.ToList();
+
+            var reviewed = await _context.Submissions
+                .Include(s => s.ReviewedBy)
+                .Where(s => relatedIds.Contains(s.AssignmentId) && s.MentorFeedback != null)
                 .OrderByDescending(s => s.ReviewDate)
-                .Select(s => s.MentorFeedback)
-                .FirstOrDefaultAsync();
+                .ThenByDescending(s => s.Version)
+                .ToListAsync();
+
+            var feedbackByTask = new Dictionary<int, TaskFeedbackViewModel>();
+            foreach (var s in reviewed)
+            {
+                if (!taskIdByAssignment.TryGetValue(s.AssignmentId, out var tId)) continue;
+                if (feedbackByTask.ContainsKey(tId)) continue;
+
+                feedbackByTask[tId] = new TaskFeedbackViewModel
+                {
+                    TaskId = tId,
+                    Feedback = s.MentorFeedback!,
+                    ReviewDate = s.ReviewDate,
+                    SubmissionStatus = s.StatusSubmission,
+                    Version = s.Version,
+                    ReviewerName = s.ReviewedBy != null
+                        ? $"{s.ReviewedBy.FirstName} {s.ReviewedBy.LastName}"
+                        : null
+                };
+            }
 
             var freeTasks = await _context.TaskItems
                 .Include(t => t.Category)
@@ -65,7 +96,7 @@ namespace InternProjects.Controllers
                 SubmittedTasks = assignments.Where(a => a.Status == "Предадена за проверка").ToList(),
                 AcceptedTasks = assignments.Where(a => a.Status == "Приета").ToList(),
 
-                LatestFeedback = latestFeedback,
+                FeedbackByTask = feedbackByTask,
                 FreeTasks = freeTasks
             };
 

@@ -105,6 +105,32 @@
                     </div>
                 </div>
             }
+
+            @if (!string.IsNullOrEmpty(s.MentorFeedback))
+            {
+                <div class="card mb-3 @(s.StatusSubmission == "Прието" ? "border-success" :
+                                        s.StatusSubmission == "Върнато за корекция" ? "border-warning" : "border-danger")">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-1">
+                            Обратна връзка
+                            @if (s.ReviewedBy != null)
+                            {
+                                <text>от @s.ReviewedBy.FirstName @s.ReviewedBy.LastName</text>
+                            }
+                        </h6>
+                        <div class="text-muted small mb-2">
+                            @s.StatusSubmission
+                            @if (s.ReviewDate != null)
+                            {
+                                <text>· @s.ReviewDate?.ToString("dd.MM.yyyy HH:mm")</text>
+                            }
+                            · версия @s.Version
+                        </div>
+                        <div style="white-space: pre-line">@s.MentorFeedback</div>
+                        <div class="text-muted small mt-2">Стажантът вижда този текст при задачата.</div>
+                    </div>
+                </div>
+            }
         }
 
         @if (Model.Submissions.Count > 1)
@@ -120,7 +146,11 @@
                                 · @old.StatusSubmission
                                 @if (!string.IsNullOrEmpty(old.MentorFeedback))
                                 {
-                                    <div class="text-muted">Обратна връзка: @old.MentorFeedback</div>
+                                    <div class="text-muted">
+                                        Обратна връзка@(old.ReviewedBy != null
+                                            ? $" от {old.ReviewedBy.FirstName} {old.ReviewedBy.LastName}" : ""):
+                                        @old.MentorFeedback
+                                    </div>
                                 }
                             </li>
                         }

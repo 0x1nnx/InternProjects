@@ -73,6 +73,7 @@ namespace InternProjects.Controllers
             var teamAssignmentIds = teamMembers.Select(a => a.Id).ToList();
 
             var submissions = await _context.Submissions
+                .Include(s => s.ReviewedBy)
                 .Where(s => teamAssignmentIds.Contains(s.AssignmentId))
                 .OrderByDescending(s => s.Version)
                 .ToListAsync();

@@ -11,3 +11,11 @@ obj/
 # User-specific files
 *.user
 *.suo
+
+# Uploaded submissions (contain personal data)
+InternProjects/wwwroot/uploads/
+InternProjects/uploads/
+
+# Database backups
+*.bak
+*.tgz

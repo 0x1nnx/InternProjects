@@ -110,7 +110,7 @@
                         {
                             <tr>
                                 <td>
-                                    @if (User.IsInRole("Admin") && a.Status == "Предадена за проверка")
+                                    @if (User.IsInRole("Admin") && a.Status != "В процес")
                                     {
                                         <a asp-controller="Review" asp-action="Details" asp-route-id="@a.Id">@a.Task?.Title</a>
                                     }

@@ -29,3 +29,24 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+@media (min-width: 992px) {
+  .training-sidebar {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.training-text {
+  white-space: pre-line;
+}
+
+.training-figure img {
+  max-height: 480px;
+  object-fit: contain;
+}
+
+.training-images img {
+  max-height: 140px;
+  object-fit: cover;
+  width: 100%;
+}

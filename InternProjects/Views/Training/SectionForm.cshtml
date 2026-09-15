@@ -1,0 +1,135 @@
+@model InternProjects.Models.TrainingSection
+@{
+    ViewData["Title"] = (string?)ViewData["Heading"] ?? "Секция";
+    var formAction = (string?)ViewData["FormAction"] ?? "EditSection";
+    bool isEdit = formAction == "EditSection";
+}
+
+<nav class="mb-3">
+    <a asp-action="EditModule" asp-route-id="@Model.ModuleId">← @(ViewData["ModuleTitle"] ?? "Модул")</a>
+</nav>
+
+<h3 class="mb-4">@ViewData["Heading"]</h3>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form asp-action="@formAction" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+            <input type="hidden" asp-for="ModuleId" />
+            @if (isEdit)
+            {
+                <input type="hidden" asp-for="Id" />
+            }
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">Заглавие *</label>
+                        <input asp-for="Title" class="form-control"
+                               placeholder="Напр.: Как се посреща клиент" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Кратко пояснение</label>
+                        <input asp-for="Description" class="form-control"
+                               placeholder="Показва се под заглавието на секцията" />
+                    </div>
+
+                    <div class="mb-0">
+                        <label asp-for="Content" class="form-label">Указания</label>
+                        <textarea asp-for="Content" class="form-control" rows="12"
+                                  placeholder="Текстът, който виждат стажантите."></textarea>
+                        <div class="form-text">
+                            Празен ред = нов абзац. Ред, който започва с <code>- </code>, се показва като точка от списък.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">Запази</button>
+                <a asp-action="EditModule" asp-route-id="@Model.ModuleId" class="btn btn-outline-secondary">Отказ</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        @if (!isEdit)
+        {
+            <div class="alert alert-light border small mb-0">
+                Подточките се добавят след като секцията бъде създадена.
+                Използвайте ги, когато една секция трябва да се раздели на отделни случаи -
+                например обектите AKS 1, AKS 2 и AKS 3.
+            </div>
+        }
+        else
+        {
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Подточки</h5>
+                <a asp-action="CreateTopic" asp-route-sectionId="@Model.Id"
+                   class="btn btn-sm btn-primary">+ Нова подточка</a>
+            </div>
+
+            <div class="card">
+                <div class="list-group list-group-flush">
+                    @foreach (var topic in Model.Topics)
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">@topic.Title</div>
+                                    <div class="text-muted small">
+                                        @if (string.IsNullOrWhiteSpace(topic.Content))
+                                        {
+                                            <span class="text-warning">без указания</span>
+                                        }
+                                        else
+                                        {
+                                            <span>попълнена</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="text-nowrap">
+                                    <form asp-action="MoveTopic" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@topic.Id" />
+                                        <input type="hidden" name="direction" value="up" />
+                                        <button type="submit" class="btn btn-sm btn-link p-0 px-1" title="Нагоре">↑</button>
+                                    </form>
+                                    <form asp-action="MoveTopic" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@topic.Id" />
+                                        <input type="hidden" name="direction" value="down" />
+                                        <button type="submit" class="btn btn-sm btn-link p-0 px-1" title="Надолу">↓</button>
+                                    </form>
+                                    <a asp-action="EditTopic" asp-route-id="@topic.Id"
+                                       class="btn btn-sm btn-outline-primary">Редакция</a>
+                                    <form asp-action="DeleteTopic" method="post" class="d-inline"
+                                          onsubmit="return confirm('Подточката ще бъде изтрита. Да продължа?');">
+                                        <input type="hidden" name="id" value="@topic.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">✕</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!Model.Topics.Any())
+                    {
+                        <div class="list-group-item text-center text-muted py-4 small">
+                            Няма подточки. Ако секцията е обикновен текст, не са нужни.
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="mt-4">
+            <partial name="_TrainingImageEditor" />
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/training-images.js" asp-append-version="true"></script>
+}

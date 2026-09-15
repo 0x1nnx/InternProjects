@@ -1,0 +1,165 @@
+@model InternProjects.Models.ViewModels.TrainingModuleViewModel
+@{
+    var module = Model.Module;
+    ViewData["Title"] = module.Title;
+    bool isAdmin = User.IsInRole("Admin");
+}
+
+<nav class="mb-3"><a asp-action="Index">← Начално обучение</a></nav>
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <div class="training-sidebar">
+            <div class="card mb-3">
+                <div class="list-group list-group-flush">
+                    @foreach (var item in Model.AllModules)
+                    {
+                        <a class="list-group-item list-group-item-action small @(item.Id == module.Id ? "active" : "")"
+                           asp-action="Module" asp-route-id="@item.Id">
+                            @item.SortOrder. @item.Title
+                        </a>
+                    }
+                </div>
+            </div>
+
+            @if (module.Sections.Any())
+            {
+                <div class="card">
+                    <div class="card-body py-2">
+                        <p class="text-muted text-uppercase small mb-2">В този модул</p>
+                        <ul class="list-unstyled small mb-0">
+                            @foreach (var sec in module.Sections)
+                            {
+                                <li class="mb-1">
+                                    <a href="#sec-@sec.Id" class="text-decoration-none">@sec.Title</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-pill">@module.SortOrder</span>
+                <h3 class="mb-0">@module.Title</h3>
+                @if (!module.IsPublished)
+                {
+                    <span class="badge bg-warning text-dark">Скрит</span>
+                }
+            </div>
+            @if (isAdmin)
+            {
+                <a asp-action="EditModule" asp-route-id="@module.Id" class="btn btn-sm btn-outline-primary">Редактирай</a>
+            }
+        </div>
+        <p class="text-muted mb-4">@module.Summary</p>
+
+        @{
+            var moduleContent = Model.Content(module.Content, InternProjects.Models.TrainingImage.OwnerModule, module.Id);
+        }
+
+        @if (!moduleContent.IsEmpty)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <partial name="_TrainingContent" model="moduleContent" />
+                </div>
+            </div>
+        }
+
+        @if (!module.Sections.Any() && moduleContent.IsEmpty)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <p class="text-muted small fst-italic mb-0">Указанията за този модул предстои да бъдат добавени.</p>
+                </div>
+            </div>
+        }
+
+        @foreach (var sec in module.Sections)
+        {
+            <div class="card mb-3" id="sec-@sec.Id">
+                <div class="card-body">
+                    <h5 class="mb-1">@sec.Title</h5>
+
+                    @if (!string.IsNullOrWhiteSpace(sec.Description))
+                    {
+                        <p class="text-muted small mb-3">@sec.Description</p>
+                    }
+
+                    @{
+                        var secContent = Model.Content(sec.Content, InternProjects.Models.TrainingImage.OwnerSection, sec.Id);
+                    }
+
+                    @if (!secContent.IsEmpty || !sec.Topics.Any())
+                    {
+                        <partial name="_TrainingContent" model="secContent" />
+                    }
+
+                    @if (sec.Topics.Any())
+                    {
+                        <div class="accordion accordion-flush mt-3" id="accordion-@sec.Id">
+                            @foreach (var topic in sec.Topics)
+                            {
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#topic-@topic.Id"
+                                                aria-expanded="false"
+                                                aria-controls="topic-@topic.Id">
+                                            @topic.Title
+                                        </button>
+                                    </h2>
+                                    <div id="topic-@topic.Id" class="accordion-collapse collapse"
+                                         data-bs-parent="#accordion-@sec.Id">
+                                        <div class="accordion-body">
+                                            <partial name="_TrainingContent" model="Model.Content(topic.Content, InternProjects.Models.TrainingImage.OwnerTopic, topic.Id)" />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (module.UpdateDate != null)
+        {
+            <p class="text-muted small">
+                Последна промяна: @module.UpdateDate.Value.ToString("dd.MM.yyyy HH:mm")
+                @if (!string.IsNullOrWhiteSpace(module.UpdatedByName))
+                {
+                    <text>от @module.UpdatedByName</text>
+                }
+            </p>
+        }
+
+        <div class="d-flex justify-content-between mt-4">
+            @if (Model.Previous != null)
+            {
+                <a class="btn btn-outline-secondary btn-sm"
+                   asp-action="Module" asp-route-id="@Model.Previous.Id">← @Model.Previous.Title</a>
+            }
+            else
+            {
+                <span></span>
+            }
+
+            @if (Model.Next != null)
+            {
+                <a class="btn btn-outline-primary btn-sm"
+                   asp-action="Module" asp-route-id="@Model.Next.Id">@Model.Next.Title →</a>
+            }
+            else
+            {
+                <span></span>
+            }
+        </div>
+    </div>
+</div>

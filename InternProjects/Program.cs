@@ -31,6 +31,9 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 
     DbSeeder.Seed(db);
+
+    TrainingSeeder.EnsureSchema(db);
+    TrainingSeeder.Seed(db);
 }
 
 // Configure the HTTP request pipeline.

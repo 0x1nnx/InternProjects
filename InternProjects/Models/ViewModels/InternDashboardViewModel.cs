@@ -20,7 +20,17 @@ namespace InternProjects.Models.ViewModels
         public List<TaskAssignment> SubmittedTasks { get; set; } = new();
         public List<TaskAssignment> AcceptedTasks { get; set; } = new();
 
-        public string? LatestFeedback { get; set; }
+        public Dictionary<int, TaskFeedbackViewModel> FeedbackByTask { get; set; } = new();
         public List<TaskItem> FreeTasks { get; set; } = new();
+    }
+
+    public class TaskFeedbackViewModel
+    {
+        public int TaskId { get; set; }
+        public string Feedback { get; set; } = "";
+        public DateTime? ReviewDate { get; set; }
+        public string SubmissionStatus { get; set; } = "";
+        public int Version { get; set; }
+        public string? ReviewerName { get; set; }
     }
 }

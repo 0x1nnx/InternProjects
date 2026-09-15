@@ -88,8 +88,33 @@
                         {
                             @foreach (var item in tasks)
                             {
+                                Model.FeedbackByTask.TryGetValue(item.Assignment.TaskId, out var fb);
+
                                 <tr>
-                                    <td>@item.Assignment.Task?.Title</td>
+                                    <td>
+                                        @item.Assignment.Task?.Title
+                                        @if (fb != null)
+                                        {
+                                            <div class="mt-2 p-2 border-start border-3 bg-light small
+                                                        @(fb.SubmissionStatus == "Прието" ? "border-success" :
+                                                          fb.SubmissionStatus == "Върнато за корекция" ? "border-warning" : "border-danger")">
+                                                <div class="fw-bold">
+                                                    Обратна връзка @fb.SubmissionStatus.ToLower()
+                                                    @if (!string.IsNullOrEmpty(fb.ReviewerName))
+                                                    {
+                                                        <span class="fw-normal">от @fb.ReviewerName</span>
+                                                    }
+                                                    @if (fb.ReviewDate != null)
+                                                    {
+                                                        <span class="text-muted fw-normal">
+                                                            (@fb.ReviewDate?.ToString("dd.MM.yyyy"), версия @fb.Version)
+                                                        </span>
+                                                    }
+                                                </div>
+                                                <div style="white-space: pre-line">@fb.Feedback</div>
+                                            </div>
+                                        }
+                                    </td>
 
                                     <td>
                                         <span class="badge @item.Class">
@@ -125,12 +150,6 @@
             </div>
         </div>
 
-        @if (!string.IsNullOrEmpty(Model.LatestFeedback))
-        {
-            <div class="alert alert-secondary mt-3 mb-0">
-                <strong>Последна обратна връзка:</strong> @Model.LatestFeedback
-            </div>
-        }
     </div>
 
     <div class="col-lg-5">

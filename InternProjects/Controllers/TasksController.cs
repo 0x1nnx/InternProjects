@@ -65,6 +65,22 @@ namespace InternProjects.Controllers
                         .FirstOrDefaultAsync(a => a.TaskId == id && a.InternId == intern.Id);
 
                     ViewBag.MyAssignment = myAssignment;
+
+                    if (myAssignment != null)
+                    {
+                        var teamAssignmentIds = await _context.TaskAssignments
+                            .Where(a => a.TaskId == id)
+                            .Select(a => a.Id)
+                            .ToListAsync();
+
+                        ViewBag.MyFeedback = await _context.Submissions
+                            .Include(s => s.ReviewedBy)
+                            .Where(s => teamAssignmentIds.Contains(s.AssignmentId)
+                                && s.MentorFeedback != null)
+                            .OrderByDescending(s => s.ReviewDate)
+                            .ThenByDescending(s => s.Version)
+                            .FirstOrDefaultAsync();
+                    }
                 }
             }
 

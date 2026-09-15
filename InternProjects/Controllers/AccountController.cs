@@ -21,7 +21,18 @@ namespace InternProjects.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login() => View();
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public IActionResult Login()
+        {
+            // Влязъл потребител не бива да вижда формата за вход. Бисквитката живее
+            // 8 часа (30 дни при "Запомни ме"), а началният маршрут е Account/Login,
+            // затова без тази проверка при повторно отваряне на приложението се
+            // показва формата, но с активна сесия - тоест с цялото меню и името.
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToDashboard();
+
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -78,7 +89,14 @@ namespace InternProjects.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register() => View(new RegisterViewModel());
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public IActionResult Register()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToDashboard();
+
+            return View(new RegisterViewModel());
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -144,5 +162,13 @@ namespace InternProjects.Controllers
         }
 
         public IActionResult Denied() => View();
+
+        /// <summary>
+        /// Насочва вече влязъл потребител към неговото табло според ролята.
+        /// </summary>
+        private IActionResult RedirectToDashboard() =>
+            User.IsInRole("Admin")
+                ? RedirectToAction("Admin", "Dashboard")
+                : RedirectToAction("Intern", "Dashboard");
     }
 }

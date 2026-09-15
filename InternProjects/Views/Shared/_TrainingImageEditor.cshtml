@@ -1,0 +1,66 @@
+@{
+    var ownerType = (string?)ViewData["OwnerType"];
+    var ownerId = ViewData["OwnerId"] as int?;
+    var images = ViewData["Images"] as List<InternProjects.Models.TrainingImage>
+                 ?? new List<InternProjects.Models.TrainingImage>();
+}
+
+@if (ownerType == null || ownerId == null)
+{
+    <div class="alert alert-light border small mb-0">
+        Снимки могат да се качват, след като елементът бъде създаден.
+    </div>
+}
+else
+{
+    <div class="card training-images"
+         data-owner-type="@ownerType"
+         data-owner-id="@ownerId"
+         data-upload-url="@Url.Action("UploadImage", "Training")"
+         data-delete-url="@Url.Action("DeleteImage", "Training")"
+         data-caption-url="@Url.Action("UpdateImageCaption", "Training")">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Снимки</h6>
+                <label class="btn btn-sm btn-primary mb-0">
+                    + Качи снимка
+                    <input type="file" class="d-none js-image-input" accept="image/*" multiple />
+                </label>
+            </div>
+
+            <p class="text-muted small">
+                След качване снимката се вмъква в текста на мястото на курсора като
+                <code>[img:номер]</code>. Ако изтриете маркера, снимката се показва накрая.
+                PNG, JPG, GIF или WEBP, до 5 MB.
+            </p>
+
+            <div class="js-image-error alert alert-danger py-2 small d-none mb-2"></div>
+            <div class="js-image-progress text-muted small d-none mb-2">Качване...</div>
+
+            <div class="js-image-list row g-2">
+                @foreach (var image in images)
+                {
+                    <div class="col-6 js-image-item" data-image-id="@image.Id">
+                        <div class="border rounded p-2 h-100">
+                            <img src="@Url.Action("Image", "Training", new { id = image.Id })"
+                                 alt="@image.OriginalName" class="img-fluid rounded mb-2" />
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <code class="small flex-grow-1">[img:@image.Id]</code>
+                                <button type="button" class="btn btn-sm btn-outline-primary js-insert"
+                                        title="Вмъкни в текста">Вмъкни</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger js-delete"
+                                        title="Изтрий">✕</button>
+                            </div>
+                            <input type="text" class="form-control form-control-sm js-caption"
+                                   value="@image.Caption" placeholder="Пояснение под снимката" />
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="js-image-empty text-muted small text-center py-3 @(images.Any() ? "d-none" : "")">
+                Няма качени снимки.
+            </div>
+        </div>
+    </div>
+}
